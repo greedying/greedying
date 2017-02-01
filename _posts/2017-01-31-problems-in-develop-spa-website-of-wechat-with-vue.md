@@ -38,6 +38,7 @@ math: y
 4. 开启调试模式后，微信支付仍然没有错误提示
 5. 授权回调处理
 6. 微信的模板消息，会自动把url中的问号(?)去掉
+7. 动态设置页面的title
 
 
 一一详述
@@ -120,6 +121,41 @@ function directRightUrl () {
 2. 自动把分隔符由#!变成#
 3. 分隔符后面，自动判断是否为斜杠(/)，没有则添加上
 
+
+#### 动态设置页面的title
+
+微信网页里面，因为会在最上面显示页面的title，所以title的设置很重要。想当然的，我们会这么写
+
+```javascript
+  document.title = 'new title'
+
+```
+
+这句代码在android中是没问题的，但是在ios中却无效。
+这个问题，应该说是ios的问题，锅不能让微信背，但我遇到了，也就写在这里。
+这方面文章很多，我也是抄袭的网上代码
+
+```javascript
+function setDocumentTitle (title) {
+  title = title || '默认titile'
+  document.title = title
+  if (/ip(hone|od|ad)/i.test(navigator.userAgent)) {
+    let iframe = document.createElement('iframe')
+    iframe.src = '/MP_verify_zxjwxCcP80t475ww.txt'
+    iframe.style.display = 'none'
+    iframe.onload = function () {
+      setTimeout(function () {
+        iframe.remove()
+      }, 0)
+      document.body.appendChild(iframe)
+    }
+  }
+}
+```
+
+每次url变化的时候，都调用一次这个函数就好了
+
+2.x版本的vux也内置了一个插件做同样的事情，我看了下，代码基本一致，应该是抄的同一个地方，O(∩_∩)O~，大家可以参考下
 
 ### 结束语
 以上就是我在开发过程中遇到的一些还记得的坑，欢迎大家探讨
