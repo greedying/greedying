@@ -39,6 +39,7 @@ math: y
 5. 授权回调处理
 6. 微信的模板消息，会自动把url中的问号(?)去掉
 7. 动态设置页面的title
+8. ios下微信分享页面错误问题
 
 
 一一详述
@@ -135,6 +136,10 @@ function directRightUrl () {
 这个问题，应该说是ios的问题，锅不能让微信背，但我遇到了，也就写在这里。
 这方面文章很多，我也是抄袭的网上代码
 
+**解决办法**
+
+每次url变化的时候，都调用以下函数
+
 ```javascript
 function setDocumentTitle (title) {
   title = title || '默认titile'
@@ -153,9 +158,25 @@ function setDocumentTitle (title) {
 }
 ```
 
-每次url变化的时候，都调用一次这个函数就好了
 
 2.x版本的vux也内置了一个插件做同样的事情，我看了下，代码基本一致，应该是抄的同一个地方，O(∩_∩)O~，大家可以参考下
+
+#### ios下微信分享页面错误问题
+简单讲，我打开SPA的时候是页面A，然后经过一系列操作，跳转到了页面B，这时候点击微信右上角的分享按钮，发送给别人或者分享到朋友圈，别人打开后，仍然是页面A
+
+这个问题，其实和前面支付签名的问题是一样的，都是对当前url的判定不同。
+
+幸好微信的JSSDK提供了以下几个接口能够设定分享的url和图片等
+
+1.onMenuShareTimeline  
+2.onMenuShareAppMessage  
+3.onMenuShareQQ 
+4.onMenuShareWeibo  
+5.onMenuShareQZone  
+
+**解决办法**
+
+每次url变化的时候，调用onbMenuShare系列接口，设定分享的各种信息
 
 ### 结束语
 以上就是我在开发过程中遇到的一些还记得的坑，欢迎大家探讨
