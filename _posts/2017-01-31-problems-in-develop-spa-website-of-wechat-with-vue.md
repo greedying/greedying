@@ -11,6 +11,19 @@ math: y
 
 本文为我创业过程中，开发项目的填坑之旅。作为一个技术宅男，我的项目是做一个微信公众号，前后端全部自己搞定，不浪费国家一分钱^_^。
 
+### 直接放最佳实践，解决SPA下使用jSSDk和微信支付问题
+
+>注意，下面是我总结的最佳实践，但并非唯一方法  
+
+- vue-router路由使用hash模式(#分隔)  
+- 项目url(即js中location.href)分隔符#前面需要增加一个问号(?)。如果没有问号，则js跳转到有问号的url上  
+- 签名or加密的时候，wx.config签名通过window.location.href.split(‘#’)[0]获取签名使用的url  
+- 接上，而微信支付签名使用的url，通过用window.location.href获取  
+- 每次url更改的时候，重新调用JSSDK的config接口  
+- 为了解决微信支付要求至少二级目录的问题，所有前端url，统一加一个**/frontend**前缀，变成 http(s)://domain.com/frontend/?#hashstring 的形式，同时在微信后台设置支付目录为 http(s)://domain.com/frontend/  
+- 每次url变化后，重新进行微信config，并且重新设置微信分享接口(onMenuShare系列接口)  
+
+
 ### 我决定实现如下功能
 
 - 架构上，实现前后端分离。方便以后前后端的分工
@@ -54,9 +67,10 @@ JSSDK在普通网站中是没问题的，但是在SPA站点中，签名经常出
 
 也就是说，android下的微信客户端里，不支持vue-router的history模式。
 
-解决办法见支付签名问题
-- vue-router使用hash模式
-- 每次url更改的时候，重新调用JSSDK的config接口
+解决办法见支付签名问题  
+
+- vue-router使用hash模式 
+- 每次url更改的时候，重新调用JSSDK的config接口 
 
 #### 微信支付签名出错
 
@@ -67,24 +81,28 @@ JSSDK在普通网站中是没问题的，但是在SPA站点中，签名经常出
 
 另外就是wx.config的签名url和支付签名url，微信处理也不一样，见下面的解决办法
 
-**解决办法**
-- vue-router路由使用hash模式
-- 每次url更改的时候，重新调用JSSDK的config接口
-- hash分隔(#)前面加一个问号(?)，如果js判断没有问号，则跳转一次
-- wx.config签名使用的url，通过**window.location.href.split('#')[0]**获取
-- 微信支付签名使用的url，通过用window.location.href获取
+**解决办法**  
+
+- vue-router路由使用hash模式  
+- 每次url更改的时候，重新调用JSSDK的config接口  
+- hash分隔(#)前面加一个问号(?)，如果js判断没有问号，则跳转一次  
+- wx.config签名使用的url，通过**window.location.href.split('#')[0]**获取  
+- 微信支付签名使用的url，通过用window.location.href获取  
 
 #### 微信支付路径要求二级或以上路径
 在遇到这个问题之前，我的php接口都统一加了一个前缀api，也就是***http://example.com/api/other***这样的url，服务器会自动转发给php服务，其他url则转发给前端服务器。遇到微信这个问题后，我把前端url也统一加了一个前缀frontend，这样前端url就变成了***http://example.com/frontend/?#hash***
 
 **解决办法**
-- 所有前端url，统一加一个**/frontend**前缀
+
+- 所有前端url，统一加一个**/frontend**前缀  
 
 #### 开启调试模式后，微信支付仍然没有错误提示
 不止微信支付，JSSDK的其他接口，也经常没有错误提示，或者提示很模糊，微信这简直是慢性谋杀。
-不过我对比发现，ios下的各种提示，要比android下全面很多，如有必要，推荐大家在ios下进行调试
+不过我对比发现，ios下的各种提示，要比android下全面很多，如有必要，推荐大家在ios下进行调试  
+
 **解决办法**
-- 使用iphone进行开发调试
+
+- 使用iphone进行开发调试  
 
 
 #### 授权回调处理
@@ -96,8 +114,9 @@ JSSDK在普通网站中是没问题的，但是在SPA站点中，签名经常出
 
 前面解决微信签名问题的时候，我们给每个url特意加了一个问号(?)，但是我发现，在发送微信模板消息的时候，即使给微信的url是对的，当用户点击模板消息的时候，微信打开的链接中，仍然把问号去掉了，这个很让人无语。考虑到尽量自己解决问题的原则，最后我的解决方案是在js中进行判断处理，自动把缺失的问号加上
 
-**解决办法**
-- 如果页面没有问号(?)，则跳转到正确的url，代码如下
+**解决办法**  
+
+- 如果页面没有问号(?)，则跳转到正确的url，代码如下  
 
 ```javascript
 function directRightUrl () {
@@ -138,7 +157,7 @@ function directRightUrl () {
 
 **解决办法**
 
-每次url变化的时候，都调用以下函数
+每次url变化的时候，都调用以下函数  
 
 ```javascript
 function setDocumentTitle (title) {
