@@ -16,7 +16,8 @@ math: y
 >注意，下面是我总结的最佳实践，但并非唯一方法  
 
 - vue-router路由使用hash模式(#分隔)  
-- 项目url(即js中location.href)分隔符#前面需要增加一个问号(?)。如果没有问号，则js跳转到有问号的url上  
+- 项目url(即js中location.href)分隔符#前面需要增加一个问号(?),即location.hash不能为空，至少有一个问号。如果没有问号，则js跳转到有问号的url上，跳转代码见后面微信模板消息部分  
+- 项目url location.pathname部分，必须以斜杠(/)结尾，如果不是，则跳转，代码同上 
 - 签名or加密的时候，wx.config签名通过window.location.href.split(‘#’)[0]获取签名使用的url  
 - 接上，而微信支付签名使用的url，通过用window.location.href获取  
 - 每次url更改的时候，重新调用JSSDK的config接口  
@@ -116,24 +117,21 @@ JSSDK在普通网站中是没问题的，但是在SPA站点中，签名经常出
 
 **解决办法**  
 
-- 如果页面没有问号(?)，则跳转到正确的url，代码如下  
+- 如果页面没有问号(?)，则跳转到正确的url
+- 以下代码也同时处理了location.pathname以(/)结尾和location.search至少有一个(?) 的问题
 
 ```javascript
 function directRightUrl () {
-  let paths = window.location.href.split('#')
-  paths[1] = paths[1] || '/'
-  // 老式的#!分隔跳转
-  if (paths[0].charAt(paths[0].length - 1) !== '?') {
-    paths[0] = `${paths[0]}?`
-  }
-  if (paths[1].charAt(0) === '!') {
-     paths[1] = paths[1].substr(1)
-  }
-  let url = `${paths[0]}#${paths[1]}`
-  if (window.location.href !== url) {
-    window.location.href = url
+  let { href, protocol, host, search, hash } = window.location
+  const pathname = '/frontend/' // 解决支付路径问题添加的前缀，替换成你的
+  search = search || '?'
+  hash = hash || '#/'
+  let newHref = `${protocol}//${host}${pathname}${search}${hash}`
+  if (newHref !== href) {
+    window.location.replace(newHref)
   }
 }
+
 ```
 
 以上代码有三个作用
